@@ -1,4 +1,4 @@
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
 namespace CursorDodge;
 
@@ -39,23 +39,23 @@ internal sealed class SettingsForm : Form
             layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
         layout.Controls.Add(LabelFor("移動量（px）"), 0, 0);
-        _distanceInput = NumInput(10, 3000, settings.DistancePx);
+        _distanceInput = NumInputInt(10, 3000, settings.DistancePx);
         layout.Controls.Add(_distanceInput, 1, 0);
 
         layout.Controls.Add(LabelFor("角度（上方向=0°, 右=90°）"), 0, 1);
-        _angleInput = NumInput(-360, 360, settings.AngleDegrees);
+        _angleInput = NumInputDouble(-360m, 360m, settings.AngleDegrees);
         layout.Controls.Add(_angleInput, 1, 1);
 
         layout.Controls.Add(LabelFor("フレームレート（fps）"), 0, 2);
-        _frameRateInput = NumInput(10, 240, settings.FrameRate);
+        _frameRateInput = NumInputInt(10, 240, settings.FrameRate);
         layout.Controls.Add(_frameRateInput, 1, 2);
 
         layout.Controls.Add(LabelFor("移動時間（ms）"), 0, 3);
-        _moveDurationInput = NumInput(30, 3000, settings.MoveDurationMs);
+        _moveDurationInput = NumInputInt(30, 3000, settings.MoveDurationMs);
         layout.Controls.Add(_moveDurationInput, 1, 3);
 
         layout.Controls.Add(LabelFor("クリック後反応待機（ms）"), 0, 4);
-        _armTimeoutInput = NumInput(50, 3000, settings.ArmTimeoutMs);
+        _armTimeoutInput = NumInputInt(50, 3000, settings.ArmTimeoutMs);
         layout.Controls.Add(_armTimeoutInput, 1, 4);
 
         var buttonPanel = new FlowLayoutPanel
@@ -111,7 +111,7 @@ internal sealed class SettingsForm : Form
         };
     }
 
-    private static NumericUpDown NumInput(int min, int max, decimal initial)
+    private static NumericUpDown NumInputInt(int min, int max, int initial)
     {
         return new NumericUpDown
         {
@@ -124,7 +124,7 @@ internal sealed class SettingsForm : Form
         };
     }
 
-    private static NumericUpDown NumInput(int min, int max, double initial)
+    private static NumericUpDown NumInputDouble(decimal min, decimal max, double initial)
     {
         return new NumericUpDown
         {
@@ -138,6 +138,11 @@ internal sealed class SettingsForm : Form
     }
 
     private static decimal ClampDecimal(decimal value, int min, int max)
+    {
+        return Math.Clamp(value, min, max);
+    }
+
+    private static decimal ClampDecimal(decimal value, decimal min, decimal max)
     {
         return Math.Clamp(value, min, max);
     }
