@@ -1,43 +1,68 @@
-# CursorDodge
+﻿# CursorDodge
 
-CursorDodge は、マウスクリック後にすぐ文字入力を始めるときに、  
-カーソル位置を画面上方向を 0 度として指定した角度方向へ瞬時に移動させる  
-Windows 用トレイ常駐ツールです。
+CursorDodge は、テキスト入力時にカーソル位置が邪魔になるのを避けるため、クリック直後にカーソルを指定方向へずらす Windows 向けトレイ常駐ユーティリティです。
 
 ## 主な機能
 
-- 常駐: システムトレイで実行し、コンソール画面を表示しません。
-- 自動起動: タスクトレイメニューから有効 / 無効を切り替え。
-- 移動の挙動設定
+- 低レベルフックでマウスクリック後の入力を監視
+- 設定可能なカーソル回避挙動
   - 移動量（px）
-  - 方向角度（上方向を `0°`, 右方向を `90°` として時計回り）
-- アニメーション設定
-  - フレームレート（fps）
+  - 方向（上方向=0°, 右方向=90°）
+  - フレームレート
   - 移動時間（ms）
   - クリック後の反応待機時間（ms）
+  - 誤発火抑止用の最小入力文字数
+- タスクトレイ常駐
+- 自動起動設定（起動時にトレイへ登録）
+- コンソール表示なし（WinExe）
 
-### 設定方法
+## GitHub から最低限の実行環境を取得（推奨）
 
-1. トレイの CursorDodge アイコンを右クリック
-2. `設定` を開く
-3. 項目を変更して `保存`
+このアプリは `self-contained` で公開できます。つまり、実行時にローカル環境へ .NET SDK/Runtime を別途インストールする必要がありません。
 
-## ビルドと配布
+### 1) GitHub Releases から取得
 
-### 通常の実行ファイル生成
+- リリースページ: https://github.com/SalmonLab/CursorDodge/releases/latest
+- 配布物が用意されている場合、`CursorDodge-Portable.zip` または `CursorDodge.exe` をダウンロードしてください。
+
+### 2) PowerShell で自動取得（GitHub API 利用）
 
 ```powershell
+.\scripts\get-cursordodge-standalone.ps1 -TargetDir "$env:USERPROFILE\CursorDodge"
+```
+
+- `-TargetDir` 省略時は `scripts\..\portable` へ保存されます。
+- 取得後、以下を実行して起動できます。
+
+```powershell
+Start-Process "$env:USERPROFILE\CursorDodge\CursorDodge.exe"
+```
+
+必要なら起動まで一度で済ませるには:
+
+```powershell
+.\scripts\get-cursordodge-standalone.ps1 -TargetDir "$env:USERPROFILE\CursorDodge" -RunAfterDownload
+```
+
+## 開発者向けビルド
+
+```powershell
+dotnet build
 dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
 ```
 
-`bin/Release/net8.0-windows/win-x64/publish/CursorDodge.exe`
+既定の出力先:
 
-### 依存なし（推奨）の配布
+- `bin/Release/net8.0-windows/win-x64/publish/CursorDodge.exe`
 
-上記の self-contained 出力は、必要な .NET ランタイムを同梱した単体実行可能 EXE になります。
+## 設定
+
+設定は次の項目を保存ファイルから管理します。
+
+- 保存場所: `%AppData%\CursorDodge\settings.json`
+- トレイメニュー: `設定`
 
 ## 注意
 
-- 仕様上、システム全体で低レベル入力フックを使用します。
-- クリック後、一定時間内にキー入力を検知したときだけカーソルを回避移動します。
-- 反応を止めたい場合は、トレイメニューの `無効化` を選択してください。
+- 自動起動やトレイ常駐の設定を変更する場合は、実行中のアプリ側で行ってください。
+- 本アプリは Windows 上での低レベルフックを使用します。必要に応じてテスト環境で挙動確認してください。
