@@ -11,6 +11,7 @@ internal sealed class SettingsForm : Form
     private readonly NumericUpDown _frameRateInput;
     private readonly NumericUpDown _moveDurationInput;
     private readonly NumericUpDown _armTimeoutInput;
+    private readonly NumericUpDown _triggerCharsInput;
 
     public SettingsForm(CursorDodgeContext context)
     {
@@ -29,13 +30,13 @@ internal sealed class SettingsForm : Form
             Dock = DockStyle.Fill,
             AutoSize = true,
             ColumnCount = 2,
-            RowCount = 6,
+            RowCount = 7,
             Padding = new Padding(12),
         };
 
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 170));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 7; i++)
             layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
         layout.Controls.Add(LabelFor("移動量（px）"), 0, 0);
@@ -58,6 +59,10 @@ internal sealed class SettingsForm : Form
         _armTimeoutInput = NumInputInt(50, 3000, settings.ArmTimeoutMs);
         layout.Controls.Add(_armTimeoutInput, 1, 4);
 
+        layout.Controls.Add(LabelFor("移動トリガー文字数"), 0, 5);
+        _triggerCharsInput = NumInputInt(1, 20, settings.MinCharsToTrigger);
+        layout.Controls.Add(_triggerCharsInput, 1, 5);
+
         var buttonPanel = new FlowLayoutPanel
         {
             AutoSize = true,
@@ -74,7 +79,7 @@ internal sealed class SettingsForm : Form
 
         buttonPanel.Controls.Add(saveButton);
         buttonPanel.Controls.Add(cancelButton);
-        layout.Controls.Add(buttonPanel, 0, 5);
+        layout.Controls.Add(buttonPanel, 0, 6);
         layout.SetColumnSpan(buttonPanel, 2);
 
         Controls.Add(layout);
@@ -92,7 +97,8 @@ internal sealed class SettingsForm : Form
             AngleDegrees = (double)_angleInput.Value,
             FrameRate = (int)_frameRateInput.Value,
             MoveDurationMs = (int)_moveDurationInput.Value,
-            ArmTimeoutMs = (int)_armTimeoutInput.Value
+            ArmTimeoutMs = (int)_armTimeoutInput.Value,
+            MinCharsToTrigger = (int)_triggerCharsInput.Value
         };
 
         _context.ApplySettings(next);

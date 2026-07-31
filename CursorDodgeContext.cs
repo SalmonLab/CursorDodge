@@ -11,6 +11,37 @@ internal sealed class CursorDodgeContext : ApplicationContext
     private const string RunRegistryPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
     private const string RunValueName = "CursorDodge";
     private const int TrayIconTextMaxLength = 63;
+    private const int VkBackspace = 0x08;
+    private const int VkTab = 0x09;
+    private const int VkEnter = 0x0D;
+    private const int VkShift = 0x10;
+    private const int VkCtrl = 0x11;
+    private const int VkAlt = 0x12;
+    private const int VkPause = 0x13;
+    private const int VkCapsLock = 0x14;
+    private const int VkEsc = 0x1B;
+    private const int VkInsert = 0x2D;
+    private const int VkDelete = 0x2E;
+    private const int VkHome = 0x24;
+    private const int VkEnd = 0x23;
+    private const int VkPageUp = 0x21;
+    private const int VkPageDown = 0x22;
+    private const int VkLeft = 0x25;
+    private const int VkUp = 0x26;
+    private const int VkRight = 0x27;
+    private const int VkDown = 0x28;
+    private const int VkPrint = 0x2A;
+    private const int VkHelp = 0x2F;
+    private const int VkLWin = 0x5B;
+    private const int VkRWin = 0x5C;
+    private const int VkApps = 0x5D;
+    private const int VkNum0 = 0x30;
+    private const int VkNum9 = 0x39;
+    private const int VkAlphaA = 0x41;
+    private const int VkAlphaZ = 0x5A;
+    private const int VkSpace = 0x20;
+    private const int VkOem1 = 0xBA;
+    private const int VkOem2 = 0xBF;
 
     private readonly NotifyIcon _trayIcon;
     private readonly ToolStripMenuItem _toggleItem;
@@ -27,6 +58,7 @@ internal sealed class CursorDodgeContext : ApplicationContext
     private volatile bool _isEnabled;
     private volatile bool _isArmed;
     private DateTime _armedUntilUtc;
+    private int _typedCount;
     private int _isAnimating;
 
     public CursorDodgeContext()
@@ -76,7 +108,8 @@ internal sealed class CursorDodgeContext : ApplicationContext
                     AngleDegrees = _settings.AngleDegrees,
                     FrameRate = _settings.FrameRate,
                     MoveDurationMs = _settings.MoveDurationMs,
-                    ArmTimeoutMs = _settings.ArmTimeoutMs
+                    ArmTimeoutMs = _settings.ArmTimeoutMs,
+                    MinCharsToTrigger = _settings.MinCharsToTrigger
                 };
             }
         }
@@ -195,6 +228,7 @@ internal sealed class CursorDodgeContext : ApplicationContext
         {
             _isArmed = true;
             _armedUntilUtc = DateTime.UtcNow.AddMilliseconds(_settings.ArmTimeoutMs);
+            _typedCount = 0;
         }
     }
 
@@ -204,13 +238,31 @@ internal sealed class CursorDodgeContext : ApplicationContext
             return;
 
         bool shouldDodge;
+        bool isCountedChar;
         AppSettings snapshot;
 
         lock (_stateLock)
         {
-            shouldDodge = _isArmed && DateTime.UtcNow <= _armedUntilUtc;
+            bool armExpired = DateTime.UtcNow > _armedUntilUtc;
+            if (!_isArmed || armExpired)
+            {
+                if (armExpired)
+                    _isArmed = false;
+                return;
+            }
+
+            isCountedChar = IsTypingKey(vkCode);
+            if (!isCountedChar)
+            {
+                return;
+            }
+
+            _typedCount += 1;
+            shouldDodge = _typedCount >= _settings.MinCharsToTrigger;
             if (shouldDodge)
+            {
                 _isArmed = false;
+            }
 
             snapshot = new AppSettings
             {
@@ -218,7 +270,8 @@ internal sealed class CursorDodgeContext : ApplicationContext
                 AngleDegrees = _settings.AngleDegrees,
                 FrameRate = _settings.FrameRate,
                 MoveDurationMs = _settings.MoveDurationMs,
-                ArmTimeoutMs = _settings.ArmTimeoutMs
+                ArmTimeoutMs = _settings.ArmTimeoutMs,
+                MinCharsToTrigger = _settings.MinCharsToTrigger
             };
         }
 
@@ -240,6 +293,39 @@ internal sealed class CursorDodgeContext : ApplicationContext
         {
             Interlocked.Exchange(ref _isAnimating, 0);
         }
+    }
+
+    private static bool IsTypingKey(int vkCode)
+    {
+        return vkCode switch
+        {
+            >= VkNum0 and <= VkNum9 => true,
+            >= VkAlphaA and <= VkAlphaZ => true,
+            VkSpace => true,
+            0x60 => true,
+            0x61 => true,
+            0x62 => true,
+            0x63 => true,
+            0x64 => true,
+            0x65 => true,
+            0x66 => true,
+            0x67 => true,
+            0x68 => true,
+            0x69 => true,
+            0x6A => true,
+            0x6B => true,
+            0x6C => true,
+            0x6D => true,
+            0x6E => true,
+            0x6F => true,
+            >= VkOem1 and <= VkOem2 => true,
+            0xC0 => true,
+            0xDB => true,
+            0xDD => true,
+            0xDE => true,
+            0xDC => true,
+            _ => false
+        };
     }
 
     private async Task DodgeCursorAsync(AppSettings settings, CancellationToken cancellationToken)

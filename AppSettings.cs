@@ -9,6 +9,7 @@ internal sealed class AppSettings
     public int FrameRate { get; set; } = 120;
     public int MoveDurationMs { get; set; } = 200;
     public int ArmTimeoutMs { get; set; } = 500;
+    public int MinCharsToTrigger { get; set; } = 3;
 
     private const int DistanceMin = 10;
     private const int DistanceMax = 3000;
@@ -18,6 +19,8 @@ internal sealed class AppSettings
     private const int DurationMax = 3000;
     private const int ArmTimeoutMin = 50;
     private const int ArmTimeoutMax = 3000;
+    private const int MinCharsMin = 1;
+    private const int MinCharsMax = 20;
 
     public void Normalize()
     {
@@ -26,6 +29,7 @@ internal sealed class AppSettings
         FrameRate = Math.Clamp(FrameRate, FrameRateMin, FrameRateMax);
         MoveDurationMs = Math.Clamp(MoveDurationMs, DurationMin, DurationMax);
         ArmTimeoutMs = Math.Clamp(ArmTimeoutMs, ArmTimeoutMin, ArmTimeoutMax);
+        MinCharsToTrigger = Math.Clamp(MinCharsToTrigger, MinCharsMin, MinCharsMax);
     }
 
     public static string GetConfigPath()
