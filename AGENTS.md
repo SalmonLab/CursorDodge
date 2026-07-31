@@ -15,6 +15,13 @@
 - 公開済みの設定キー名・JSON 形式は極力維持し、後方互換を崩さない。
 
 ## 開発・検証ルール
+- `AGENTS.md` を編集した場合は、当該変更に対して**必ず**以下を実施すること。
+  1. 実装変更
+  2. 変更内容の検証（影響範囲の確認）
+  3. `dotnet build` 実行
+  4. `dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true` 実行
+  5. 生成 `CursorDodge.exe` の存在確認
+
 - 実装前に `README.md` とこの `AGENTS.md` を確認する。
 - 依存は .NET 標準 API と既存参照外部パッケージを増やさない。
 - Windows 固有の挙動は対象 OS で動作確認を優先する。
