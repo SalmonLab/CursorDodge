@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using System.Diagnostics;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
@@ -83,7 +84,7 @@ internal sealed class CursorDodgeContext : ApplicationContext
 
         _trayIcon = new NotifyIcon
         {
-            Icon = SystemIcons.Application,
+            Icon = LoadTrayIcon(),
             Text = "CursorDodge",
             ContextMenuStrip = menu,
             Visible = true
@@ -94,6 +95,18 @@ internal sealed class CursorDodgeContext : ApplicationContext
         _keyboardHook.KeyDowned += OnKeyDowned;
 
         StartHooks();
+    }
+
+    private static Icon LoadTrayIcon()
+    {
+        var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+        using var stream = assembly.GetManifestResourceStream("CursorDodge.Resources.CursorDodge.ico");
+        if (stream is null)
+        {
+            return SystemIcons.Application;
+        }
+
+        return new Icon(stream);
     }
 
     public AppSettings CurrentSettings
